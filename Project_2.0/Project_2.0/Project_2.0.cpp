@@ -46,10 +46,22 @@ int  score = 0, lives = START_LIVES;
 // Reads level.txt into bricks[][]. Return false if the file is missing.
 bool loadLevel()
 {
-    // TODO: open level.txt, read rows and cols, then nested loops with fin >> bricks[r][c]
-    return false;
+    ifstream fin("level.txt");
+    if (!fin.is_open())
+        return false;
+    int rows, cols;
+    fin >> rows >> cols;
+    for (int r = 0; r < ROWS ; r++) 
+    {
+        for (int c = 0; c < COLS; c++)
+        {
+            fin >> bricks[r][c];
+        }
+    }
+    return true;
 }
 
+// Puts the ball on the middle of the paddle, waiting for Space.
 // Puts the ball on the middle of the paddle, waiting for Space.
 void resetBall()
 {
