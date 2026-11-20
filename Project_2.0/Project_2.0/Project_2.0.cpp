@@ -71,7 +71,22 @@ void resetBall()
 // New Game: score 0, 3 lives, reload bricks, paddle in the middle, ball on paddle.
 void startNewGame()
 {
-    // TODO
+    loadLevel();
+    score = 0, lives = START_LIVES;
+    paddleWidth = PADDLE_W_NORMAL;
+    paddleX = (WIN_W - paddleWidth) / 2;
+    if (!loadLevel())
+    {
+        for (int r = 0; r < ROWS; r++)
+        {
+            for (int c = 0; c < ROWS; c++)
+            {
+                bricks[r][c] = (r < 4) ? 1 : 0;
+            }
+        }
+    }
+    resetBall();
+    gameState = PLAYING;
 }
 
 void movePaddle()
@@ -187,7 +202,25 @@ void drawHUD(sf::RenderWindow& window, const sf::Font& font)
 // Use the pattern in Section 2.1 of the brief (one RectangleShape, colour by bricks[r][c]).
 void drawBricks(sf::RenderWindow& window)
 {
-    // TODO
+    const float BRICK_W = 60.f, BRICK_H = 25.f; // one brick is 60 x 25 pixels
+    const float BRICKS_Y = 100.f;
+
+   sf::Color colors[4] = { sf::Color(25, 25, 45),
+   sf::Color::Green,
+   sf::Color::Yellow, 
+   sf::Color::Red }; 
+   sf::RectangleShape brick({ BRICK_W - 2 , BRICK_H - 2 });
+      for (int r = 0; r < ROWS; r++)
+    {
+        for (int c = 0; c < COLS; c++)
+       {
+            if (bricks[r][c] == 0)
+                continue;
+            brick.setFillColor(colors[bricks[r][c]]);
+            brick.setPosition({ c * BRICK_W + 1, BRICKS_Y + r * BRICK_H + 1 });
+            window.draw(brick);
+        }
+    }
 }
 
 void drawMenu(sf::RenderWindow& window, const sf::Font& font)
