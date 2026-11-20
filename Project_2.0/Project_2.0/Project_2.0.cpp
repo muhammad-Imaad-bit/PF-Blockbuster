@@ -112,7 +112,12 @@ void movePaddle()
 // Space launches the ball: dy = -5, dx = 3 or -3 (rand() % 2)
 void launchBall()
 {
-    // TODO
+    dx = 3, dy = -5;
+    if (rand() % 2 == 0)
+    {
+        dx = -3;
+    }
+    ballLaunched = true;
 }
 
 // Bricks the ball touches (use the 4 corners). Returns true if it touched a brick.
@@ -193,9 +198,12 @@ void updatePlaying()
     movePaddle();
     if (!ballLaunched)
     {
-        ballX = paddleX + 44;
+      ballX = paddleX + 44;
+        if (pressedKey == KEY_SPACE)
+          {
+            launchBall();
+          }
     }
-    // TODO: movePaddle(); if not launched, ball follows paddle and Space launches
     // TODO: if launched, moveBall(); lost ball -> lives; win/lose checks
 }
 
