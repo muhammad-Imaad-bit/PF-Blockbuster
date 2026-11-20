@@ -178,7 +178,7 @@ void saveGame()
     ofstream fout("savegame.txt");
     if (!fout)
         return ;
-    fout << score << " "  << lives;
+    fout << score << " "  << lives<<endl;
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLS; j++)
@@ -193,8 +193,24 @@ void saveGame()
 // Returns false if there is no saved game.
 bool loadGame()
 {
-    // TODO: read savegame.txt, restore score, lives, bricks; paddle in the middle; resetBall()
-    return false;
+    ifstream fin("savegame.txt");
+    if (!fin)
+        return false;
+    else if (!(fin >> score >> lives))
+        return false;
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            fin >> bricks[i][j];
+        }
+
+    }
+    fin.close();
+    paddleX = 250;
+    ballX = paddleX + 44, ballY = 638;
+    ballLaunched = false;
+    return true;
 }
 
 void clearSave()
