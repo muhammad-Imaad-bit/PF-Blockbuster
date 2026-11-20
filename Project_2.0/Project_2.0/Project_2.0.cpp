@@ -175,7 +175,19 @@ int countBricks()
 
 void saveGame()
 {
-    // TODO: savegame.txt -> "score lives" then 8 rows of 10 numbers
+    ofstream fout("savegame.txt");
+    if (!fout)
+        return ;
+    fout << score << " "  << lives;
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            fout << bricks[i][j] << " ";
+        }
+        fout << endl;
+    }
+    fout.close();
 }
 
 // Returns false if there is no saved game.
