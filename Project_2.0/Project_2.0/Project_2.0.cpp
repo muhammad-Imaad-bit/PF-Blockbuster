@@ -187,7 +187,8 @@ bool loadGame()
 
 void clearSave()
 {
-    // TODO: open savegame.txt with ofstream and close it straight away
+    ofstream fout("savegame.txt");
+    fout.close();
 }
 
 // ===================== UPDATE PER STATE =====================
