@@ -157,9 +157,20 @@ void moveBall()
 }
 
 int countBricks()
-{
-    // TODO: number of cells that are not 0
-    return 0;
+{   
+    int counts = 0;
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            if (bricks[i][j] > 0)
+            {
+                counts++;
+            }
+        }
+    }
+    
+    return counts;
 }
 
 void saveGame()
