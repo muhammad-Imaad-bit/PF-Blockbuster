@@ -66,7 +66,11 @@ bool loadLevel()
 // Puts the ball on the middle of the paddle, waiting for Space.
 void resetBall()
 {
-    // TODO: ballX, ballY, dx, dy, ballLaunched
+    ballX = paddleX + 44;
+    ballY = 638;
+    dx = 0, dy = 0;
+    ballLaunched = false;
+
 }
 
 // New Game: score 0, 3 lives, reload bricks, paddle in the middle, ball on paddle.
@@ -187,6 +191,10 @@ void updateMenu()
 void updatePlaying()
 {
     movePaddle();
+    if (!ballLaunched)
+    {
+        ballX = paddleX + 44;
+    }
     // TODO: movePaddle(); if not launched, ball follows paddle and Space launches
     // TODO: if launched, moveBall(); lost ball -> lives; win/lose checks
 }
