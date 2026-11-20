@@ -87,7 +87,22 @@ void startNewGame()
 
 void movePaddle()
 {
-    // TODO: Left/Right/A/D with sf::Keyboard::isKeyPressed, clamp to the window
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+    {
+        paddleX -= PADDLE_SPEED;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+    {
+        paddleX += PADDLE_SPEED;
+    }
+    if (paddleX < 0)
+    {
+        paddleX = 0;
+    }
+    if (paddleX + paddleWidth > WIN_W)
+    {
+       paddleX = WIN_W - paddleWidth;
+    }
 }
 
 // Space launches the ball: dy = -5, dx = 3 or -3 (rand() % 2)
@@ -171,7 +186,7 @@ void updateMenu()
 
 void updatePlaying()
 {
-    // TODO: Esc -> saveGame() and back to MENU
+    movePaddle();
     // TODO: movePaddle(); if not launched, ball follows paddle and Space launches
     // TODO: if launched, moveBall(); lost ball -> lives; win/lose checks
 }
