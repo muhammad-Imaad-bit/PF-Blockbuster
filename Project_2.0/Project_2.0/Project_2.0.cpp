@@ -33,7 +33,8 @@ int  pressedKey = KEY_NONE;     // set in handleInput, used in updateGame
 int  menuChoice = OPT_NEW;
 bool exitGame = false;          // main() closes the window when this is true
 bool noSavedGame = false;       // show "No saved game" on the menu
-bool playerWon = false;         // true = YOU WIN, false = GAME OVER
+bool playerWon = false; // true = YOU WIN, false = GAME OVER
+bool levelError = false;
 
 int  bricks[ROWS][COLS];
 int  paddleX = 250, paddleWidth = PADDLE_W_NORMAL;
@@ -71,19 +72,14 @@ void resetBall()
 // New Game: score 0, 3 lives, reload bricks, paddle in the middle, ball on paddle.
 void startNewGame()
 {
-    loadLevel();
+    levelError = false;
     score = 0, lives = START_LIVES;
     paddleWidth = PADDLE_W_NORMAL;
     paddleX = (WIN_W - paddleWidth) / 2;
     if (!loadLevel())
     {
-        for (int r = 0; r < ROWS; r++)
-        {
-            for (int c = 0; c < ROWS; c++)
-            {
-                bricks[r][c] = (r < 4) ? 1 : 0;
-            }
-        }
+        levelError = true;
+        return;
     }
     resetBall();
     gameState = PLAYING;
@@ -147,9 +143,30 @@ void clearSave()
 // ===================== UPDATE PER STATE =====================
 void updateMenu()
 {
-    // TODO: Up/Down change menuChoice; Enter does New Game / Continue / Exit
-    //       Continue with no save: noSavedGame = true and stay on the menu
-    //       Exit: exitGame = true
+    if (pressedKey == KEY_ENTER && menuChoice == OPT_NEW)
+    {
+        startNewGame();
+    }
+    if (pressedKey == KEY_DOWN)
+    {
+        menuChoice += 1;
+    }
+    if (menuChoice > OPT_EXIT)
+    {
+        menuChoice = OPT_NEW;
+    }
+    if (pressedKey == KEY_UP)
+    {
+        menuChoice -= 1;
+    }
+    if (menuChoice < OPT_NEW)
+    {
+        menuChoice = OPT_EXIT;
+    }
+    if (pressedKey == KEY_ENTER && menuChoice == OPT_EXIT)
+    {
+        exitGame = true;
+    }
 }
 
 void updatePlaying()
@@ -198,11 +215,10 @@ void drawHUD(sf::RenderWindow& window, const sf::Font& font)
     drawText(window, font, "LIVES " + to_string(lives), 460.f, 10.f, 24);
 }
 
-// TODO (Feature 2): draw the bricks with two nested loops.
-// Use the pattern in Section 2.1 of the brief (one RectangleShape, colour by bricks[r][c]).
+// draws the bricks which are alive.
 void drawBricks(sf::RenderWindow& window)
 {
-    const float BRICK_W = 60.f, BRICK_H = 25.f; // one brick is 60 x 25 pixels
+    const float BRICK_W = 60.f, BRICK_H = 25.f;
     const float BRICKS_Y = 100.f;
 
    sf::Color colors[4] = { sf::Color(25, 25, 45),
