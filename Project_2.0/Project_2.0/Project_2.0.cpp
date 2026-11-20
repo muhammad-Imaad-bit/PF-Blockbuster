@@ -109,7 +109,6 @@ void movePaddle()
     }
 }
 
-// Space launches the ball: dy = -5, dx = 3 or -3 (rand() % 2)
 void launchBall()
 {
     dx = 3, dy = -5;
@@ -132,7 +131,41 @@ bool hitBricks()
 // Ball moving down and touching the paddle: put it on top, dy = -5, dx by the part hit.
 void bounceOnPaddle()
 {
-    // TODO
+    if (dy < 0)
+    {
+        return;
+   }
+    if (ballX > paddleX + paddleWidth || ballX+BALL_SIZE<paddleX || ballY>PADDLE_Y + PADDLE_H || ballY + BALL_SIZE < PADDLE_Y)
+    {
+        return;
+    }
+    ballY = 638;
+    dy = -5;
+    int part = (ballX + 6 - paddleX) * 4 / paddleWidth;
+    if (part < 0)
+    {
+        part = 0;
+    }
+    if (part > 3)
+    {
+        part = 3;
+    }
+    if (part == 0)
+    {
+        dx = -6;
+    }
+    if (part == 1)
+    {
+        dx = -3;
+    }
+    if (part == 2)
+    {
+        dx = 3;
+    }
+    if (part == 3)
+    {
+        dx = 6;
+    }
 }
 
 // Moves the ball in two steps (x then y), walls, bricks, paddle, lost ball.
@@ -150,6 +183,7 @@ void moveBall()
         ballY = ballY - dy;
         dy = -dy;
     }
+    bounceOnPaddle();
     if (ballY > WIN_H)
     {
         resetBall();
