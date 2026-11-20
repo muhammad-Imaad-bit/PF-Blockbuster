@@ -138,7 +138,22 @@ void bounceOnPaddle()
 // Moves the ball in two steps (x then y), walls, bricks, paddle, lost ball.
 void moveBall()
 {
-    // TODO
+    ballX = ballX + dx;
+    if (ballX<0 || ballX + BALL_SIZE>WIN_W)
+    {
+        ballX = ballX - dx;
+        dx = -dx;
+    }
+    ballY = ballY + dy;
+    if (ballY < HUD_H)
+    {
+        ballY = ballY - dy;
+        dy = -dy;
+    }
+    if (ballY > WIN_H)
+    {
+        resetBall();
+    }
 }
 
 int countBricks()
@@ -203,6 +218,10 @@ void updatePlaying()
           {
             launchBall();
           }
+    }
+    else
+    {
+        moveBall();
     }
     // TODO: if launched, moveBall(); lost ball -> lives; win/lose checks
 }
