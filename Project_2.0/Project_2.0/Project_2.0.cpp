@@ -191,26 +191,66 @@ void moveBall()
 }
 
 int countBricks()
-{
-    // TODO: number of cells that are not 0
-    return 0;
+{   
+    int counts = 0;
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            if (bricks[i][j] > 0)
+            {
+                counts++;
+            }
+        }
+    }
+    
+    return counts;
 }
 
 void saveGame()
 {
-    // TODO: savegame.txt -> "score lives" then 8 rows of 10 numbers
+    ofstream fout("savegame.txt");
+    if (!fout)
+        return ;
+    fout << score << " "  << lives<<endl;
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            fout << bricks[i][j] << " ";
+        }
+        fout << endl;
+    }
+    fout.close();
 }
 
 // Returns false if there is no saved game.
 bool loadGame()
 {
-    // TODO: read savegame.txt, restore score, lives, bricks; paddle in the middle; resetBall()
-    return false;
+    ifstream fin("savegame.txt");
+    if (!fin)
+        return false;
+    else if (!(fin >> score >> lives))
+        return false;
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            fin >> bricks[i][j];
+        }
+
+    }
+    fin.close();
+    paddleX = 250;
+    ballX = paddleX + 44, ballY = 638;
+    ballLaunched = false;
+    return true;
 }
 
 void clearSave()
 {
-    // TODO: open savegame.txt with ofstream and close it straight away
+    ofstream fout("savegame.txt");
+    fout.close();
 }
 
 // ===================== UPDATE PER STATE =====================
