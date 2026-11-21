@@ -123,9 +123,34 @@ void launchBall()
 // Hint: this helper is called after the x step and after the y step.
 bool hitBricks()
 {
-    // TODO: corners, row = (cy - 100) / 25, col = cx / 60, only inside the brick area
-    // TODO: subtract a hit, give points (10 or 50), one hit per brick
-    return false;
+    bool hit=false ;
+    int hitRow = -1, hitCol = -1;
+    int s = (int )BALL_SIZE-1;
+    int cx[4] = { ballX, ballX + s, ballX,     ballX + s };
+    int cy[4] = { ballY, ballY,     ballY + s, ballY + s };
+    for (int i = 0; i < 4; i++)
+    {
+        if (cx[i] >= 0 && cx[i] < 600 && cy[i] >= 100 && cy[i] < 300)
+        {
+            int row = (cy[i]-100)/25;
+            int col = cx[i] / 60;
+            if (bricks[row][col] > 0 && !(row == hitRow && col == hitCol))
+            {
+                bricks[row][col]--;
+                hitRow = row;
+                hitCol = col;
+                hit = true;
+
+                if (bricks[row][col] == 0)
+                    score += POINTS_BREAK;
+                else
+                    score += POINTS_HIT;
+            }
+        }
+    }
+
+
+    return hit;
 }
 
 // Ball moving down and touching the paddle: put it on top, dy = -5, dx by the part hit.
@@ -178,7 +203,7 @@ void moveBall()
         dx = -dx;
     }
     ballY = ballY + dy;
-    if (ballY < HUD_H)
+    if (ballY < HUD_H || hitBricks())
     {
         ballY = ballY - dy;
         dy = -dy;
