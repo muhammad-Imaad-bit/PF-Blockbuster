@@ -322,12 +322,19 @@ void updatePlaying()
     {
         moveBall();
     }
-    // TODO: if launched, moveBall(); lost ball -> lives; win/lose checks
-}
+   }
 
 void updateEndScreen()
 {
-    // TODO: Enter -> clearSave() (if you have not already) and back to MENU
+    if (pressedKey == KEY_ENTER)
+    {
+        clearSave();
+        noSavedGame = false;
+        levelError = false;
+        menuChoice = OPT_NEW;
+        gameState = MENU;
+    }
+
 }
 
 // ===================== DRAWING HELPERS (SFML only) =====================
