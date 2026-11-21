@@ -1,5 +1,4 @@
-// Block Buster - starter skeleton (SFML 3)
-// SFML scaffolding is provided. Every TODO is YOUR game logic.
+
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <cstdlib>
@@ -8,7 +7,7 @@
 #include <string>
 using namespace std;
 
-// ===================== CONSTANTS (add more as you need) =====================
+// CONSTANTS
 const int   WIN_W = 600, WIN_H = 700, HUD_H = 50;
 const int   ROWS = 8, COLS = 10;
 const float BRICK_W = 60.f, BRICK_H = 25.f, BRICKS_Y = 100.f;
@@ -27,7 +26,7 @@ KEY_SPACE = 4, KEY_ESC = 5;
 // menu options
 const int OPT_NEW = 0, OPT_CONTINUE = 1, OPT_EXIT = 2;
 
-// ===================== GLOBAL GAME DATA =====================
+//  GLOBAL GAME DATA 
 int  gameState = MENU;
 int  pressedKey = KEY_NONE;     // set in handleInput, used in updateGame
 int  menuChoice = OPT_NEW;
