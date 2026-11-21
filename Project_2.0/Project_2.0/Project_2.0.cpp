@@ -194,29 +194,8 @@ void bounceOnPaddle()
 }
 
 // Moves the ball in two steps (x then y), walls, bricks, paddle, lost ball.
-void moveBall()
-{
-    ballX = ballX + dx;
-    if (ballX<0 || ballX + BALL_SIZE>WIN_W)
-    {
-        ballX = ballX - dx;
-        dx = -dx;
-    }
-    ballY = ballY + dy;
-    if (ballY < HUD_H || hitBricks())
-    {
-        ballY = ballY - dy;
-        dy = -dy;
-    }
-    bounceOnPaddle();
-    if (ballY > WIN_H)
-    {
-        resetBall();
-    }
-}
-
 int countBricks()
-{   
+{
     int counts = 0;
     for (int i = 0; i < ROWS; i++)
     {
@@ -228,9 +207,44 @@ int countBricks()
             }
         }
     }
-    
+
     return counts;
 }
+void moveBall()
+{
+    ballX = ballX + dx;
+    if (ballX<0 || ballX + BALL_SIZE>WIN_W)
+    {
+        ballX = ballX - dx;
+        dx = -dx;
+    }
+    ballY = ballY + dy;
+    if (ballX < 0 || ballX + BALL_SIZE > WIN_W || hitBricks())
+    {
+        ballY = ballY - dy;
+        dy = -dy;
+    }
+    bounceOnPaddle();
+    if (ballY > WIN_H)
+    {   
+        lives--;
+        if (lives <= 0)
+        {
+            playerWon = false;
+            gameState = GAME_OVER;
+        }
+        else
+        resetBall();
+    }
+    if (countBricks() == 0)
+    {
+        playerWon = true;
+        gameState = GAME_OVER;
+    }
+
+}
+
+
 
 void saveGame()
 {
@@ -285,6 +299,17 @@ void updateMenu()
     {
         startNewGame();
     }
+    if (pressedKey == KEY_ENTER && menuChoice == OPT_CONTINUE)
+    {
+        if (loadGame())
+        {
+            gameState = PLAYING;
+        }
+        else
+        {
+            noSavedGame = true;
+        }
+    }
     if (pressedKey == KEY_DOWN)
     {
         menuChoice += 1;
@@ -312,17 +337,23 @@ void updatePlaying()
     movePaddle();
     if (!ballLaunched)
     {
-      ballX = paddleX + 44;
+        ballX = paddleX + 44;
         if (pressedKey == KEY_SPACE)
-          {
+        {
             launchBall();
-          }
+        }
     }
     else
     {
         moveBall();
     }
-   }
+
+    if (pressedKey == KEY_ESC)
+    {
+        saveGame();
+        gameState = MENU;
+    }
+}
 
 void updateEndScreen()
 {
@@ -406,6 +437,8 @@ void drawMenu(sf::RenderWindow& window, const sf::Font& font)
     }
     if (noSavedGame)
         drawText(window, font, "No saved game", 215.f, 520.f, 24, sf::Color::Red);
+    if (levelError)
+        drawText(window, font, "Level file missing!", 190.f, 560.f, 24, sf::Color::Red);
 }
 
 void drawEndScreen(sf::RenderWindow& window, const sf::Font& font)
