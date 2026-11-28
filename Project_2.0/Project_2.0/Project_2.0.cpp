@@ -123,7 +123,7 @@ void launchBall()
 bool hitBricks()
 {
     bool hit=false ;
-    int hitRow = -1, hitCol = -1;
+    int hitRows[4], hitCols[4], hitCount = 0;
     int s = (int )BALL_SIZE-1;
     int cx[4] = { ballX, ballX + s, ballX,     ballX + s };
     int cy[4] = { ballY, ballY,     ballY + s, ballY + s };
@@ -133,11 +133,16 @@ bool hitBricks()
         {
             int row = (cy[i]-100)/25;
             int col = cx[i] / 60;
-            if (bricks[row][col] > 0 && !(row == hitRow && col == hitCol))
+            bool already = false;
+            for (int k = 0; k < hitCount; k++)
+                if (hitRows[k] == row && hitCols[k] == col)
+                    already = true;
+            if (bricks[row][col] > 0 && !(already))
             {
                 bricks[row][col]--;
-                hitRow = row;
-                hitCol = col;
+                hitRows[hitCount] = row;
+                hitCols[hitCount] = col;
+                hitCount++;
                 hit = true;
 
                 if (bricks[row][col] == 0)
@@ -212,13 +217,13 @@ int countBricks()
 void moveBall()
 {
     ballX = ballX + dx;
-    if (ballX<0 || ballX + BALL_SIZE>WIN_W)
+    if (ballX < 0 || ballX + BALL_SIZE > WIN_W || hitBricks())
     {
         ballX = ballX - dx;
         dx = -dx;
     }
     ballY = ballY + dy;
-    if (ballX < 0 || ballX + BALL_SIZE > WIN_W || hitBricks())
+    if (ballY < HUD_H || hitBricks())
     {
         ballY = ballY - dy;
         dy = -dy;
@@ -238,6 +243,7 @@ void moveBall()
     if (countBricks() == 0)
     {
         playerWon = true;
+        clearSave();
         gameState = GAME_OVER;
     }
 
@@ -279,9 +285,9 @@ bool loadGame()
 
     }
     fin.close();
-    paddleX = 250;
-    ballX = paddleX + 44, ballY = 638;
-    ballLaunched = false;
+    paddleWidth = PADDLE_W_NORMAL;
+    paddleX = (WIN_W - paddleWidth) / 2;
+    resetBall();
     return true;
 }
 
@@ -333,7 +339,13 @@ void updateMenu()
 
 void updatePlaying()
 {
-    movePaddle();
+    if (pressedKey == KEY_ESC)
+    {
+        saveGame();
+        gameState = MENU;
+        return;
+    }
+      movePaddle();
     if (!ballLaunched)
     {
         ballX = paddleX + 44;
@@ -347,11 +359,6 @@ void updatePlaying()
         moveBall();
     }
 
-    if (pressedKey == KEY_ESC)
-    {
-        saveGame();
-        gameState = MENU;
-    }
 }
 
 void updateEndScreen()
