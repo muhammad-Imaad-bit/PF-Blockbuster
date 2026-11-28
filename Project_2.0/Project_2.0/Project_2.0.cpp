@@ -80,7 +80,7 @@ void checkpowerupCollision()
     bool verticalCollision = powerUpY + POWERUP_SIZE >= PADDLE_Y && powerUpY <= PADDLE_Y + PADDLE_H;
     if (horizontalCollision && verticalCollision)
     {
-        if (powerUpType == 1)
+        if (powerUpType == PT_WIDE)
         {
             wideActive = true;
             paddleWidth = 150;
@@ -90,7 +90,7 @@ void checkpowerupCollision()
                 paddleX = WIN_W - paddleWidth;
             }
         }
-        else if (powerUpType == 2)
+        else if (powerUpType == PT_LIFE)
         {
             lives++;
         }
