@@ -16,6 +16,10 @@ const int   PADDLE_W_NORMAL = 100, PADDLE_SPEED = 8;
 const float BALL_SIZE = 12.f;
 const int   START_LIVES = 3, POINTS_HIT = 10, POINTS_BREAK = 50;
 
+const int POWER_SPEED = 3, POWER_CHANCE = 5;
+const int POWER_W = 30, POWER_H = 16;
+const int PT_WIDE = 0, PT_LIFE = 1;
+
 // game states
 const int MENU = 0, PLAYING = 1, GAME_OVER = 2;
 
@@ -40,6 +44,10 @@ int  paddleX = 250, paddleWidth = PADDLE_W_NORMAL;
 int  ballX = 0, ballY = 0, dx = 0, dy = 0;
 bool ballLaunched = false;
 int  score = 0, lives = START_LIVES;
+
+bool powerActive = false;
+int  powerX = 0, powerY = 0, powerType = 0;
+
 void clearSave();
 
 // ===================== YOUR LOGIC: function shells =====================
@@ -77,6 +85,7 @@ void startNewGame()
 {
     levelError = false;
     score = 0, lives = START_LIVES;
+    powerActive = false;
     paddleWidth = PADDLE_W_NORMAL;
     paddleX = (WIN_W - paddleWidth) / 2;
     if (!loadLevel())
@@ -146,7 +155,16 @@ bool hitBricks()
                 hit = true;
 
                 if (bricks[row][col] == 0)
+                {
                     score += POINTS_BREAK;
+                    if (!powerActive && rand() % POWER_CHANCE == 0)
+                    {
+                        powerActive = true;
+                        powerX = col * 60 + 30 - POWER_W / 2;
+                        powerY = 100 + row * 25;
+                        powerType = rand() % 2;
+                    }
+                }
                 else
                     score += POINTS_HIT;
             }
@@ -287,6 +305,7 @@ bool loadGame()
 
     }
     fin.close();
+    powerActive = false;
     paddleWidth = PADDLE_W_NORMAL;
     paddleX = (WIN_W - paddleWidth) / 2;
     resetBall();
@@ -343,6 +362,20 @@ void updateMenu()
     }
 }
 
+void movePowerUp()
+{
+    if (!powerActive)
+    {
+        return;
+    }
+    powerY += POWER_SPEED;
+    if (powerY > WIN_H)
+    {
+        powerActive = false;
+    }
+   }
+
+
 void updatePlaying()
 {
     if (pressedKey == KEY_ESC)
@@ -364,6 +397,8 @@ void updatePlaying()
     {
         moveBall();
     }
+    movePowerUp();
+
 
 }
 
@@ -403,6 +438,27 @@ void drawBall(sf::RenderWindow& window)
     sf::CircleShape ball(BALL_SIZE / 2);
     ball.setPosition({ (float)ballX, (float)ballY });
     window.draw(ball);
+}
+
+void drawPowerUp(sf::RenderWindow& window, const sf::Font& font)
+{
+    if (!powerActive)
+        return;
+    sf::RectangleShape box({ (float)POWER_W, (float)POWER_H });
+    box.setPosition({ (float)powerX, (float)powerY });
+    string letter;
+    if (powerType == PT_WIDE)
+    {
+        box.setFillColor(sf::Color::Cyan);
+        letter = "W";
+    }
+    else
+    {
+        box.setFillColor(sf::Color::Green);
+        letter = "+";
+    }
+    window.draw(box);
+    drawText(window, font, letter, (float)powerX + 9.f, (float)powerY - 3.f, 16, sf::Color::Black);
 }
 
 void drawHUD(sf::RenderWindow& window, const sf::Font& font)
@@ -503,6 +559,7 @@ void drawGame(sf::RenderWindow& window, const sf::Font& font)
         drawBricks(window);
         drawPaddle(window);
         drawBall(window);
+        drawPowerUp(window, font);
         break;
     case GAME_OVER:
         drawEndScreen(window, font);
