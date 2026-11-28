@@ -40,6 +40,7 @@ int  paddleX = 250, paddleWidth = PADDLE_W_NORMAL;
 int  ballX = 0, ballY = 0, dx = 0, dy = 0;
 bool ballLaunched = false;
 int  score = 0, lives = START_LIVES;
+void clearSave();
 
 // ===================== YOUR LOGIC: function shells =====================
 
@@ -61,7 +62,6 @@ bool loadLevel()
     return true;
 }
 
-// Puts the ball on the middle of the paddle, waiting for Space.
 // Puts the ball on the middle of the paddle, waiting for Space.
 void resetBall()
 {
@@ -197,7 +197,7 @@ void bounceOnPaddle()
     }
 }
 
-// Moves the ball in two steps (x then y), walls, bricks, paddle, lost ball.
+
 int countBricks()
 {
     int counts = 0;
@@ -214,6 +214,7 @@ int countBricks()
 
     return counts;
 }
+// Moves the ball in two steps (x then y), walls, bricks, paddle, lost ball.
 void moveBall()
 {
     ballX = ballX + dx;
@@ -235,6 +236,7 @@ void moveBall()
         if (lives <= 0)
         {
             playerWon = false;
+            clearSave();
             gameState = GAME_OVER;
         }
         else
@@ -318,6 +320,8 @@ void updateMenu()
     if (pressedKey == KEY_DOWN)
     {
         menuChoice += 1;
+        noSavedGame = false;
+        levelError = false;
     }
     if (menuChoice > OPT_EXIT)
     {
@@ -326,6 +330,8 @@ void updateMenu()
     if (pressedKey == KEY_UP)
     {
         menuChoice -= 1;
+        noSavedGame = false;
+        levelError = false;
     }
     if (menuChoice < OPT_NEW)
     {
