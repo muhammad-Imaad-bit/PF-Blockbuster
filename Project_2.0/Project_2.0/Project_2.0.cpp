@@ -8,7 +8,6 @@
 #include <string>
 using namespace std;
 
-// ===================== CONSTANTS (add more as you need) =====================
 const int   WIN_W = 600, WIN_H = 700, HUD_H = 50;
 const int   ROWS = 8, COLS = 10;
 const float BRICK_W = 60.f, BRICK_H = 25.f, BRICKS_Y = 100.f;
@@ -17,23 +16,21 @@ const int   PADDLE_W_NORMAL = 100, PADDLE_SPEED = 8;
 const float BALL_SIZE = 12.f;
 const int   START_LIVES = 3, POINTS_HIT = 10, POINTS_BREAK = 50;
 
-// game states
 const int MENU = 0, PLAYING = 1, GAME_OVER = 2;
-
-// keys saved by handleInput (one press = one value)
 const int KEY_NONE = 0, KEY_UP = 1, KEY_DOWN = 2, KEY_ENTER = 3,
 KEY_SPACE = 4, KEY_ESC = 5;
 
-// menu options
-const int OPT_NEW = 0, OPT_CONTINUE = 1, OPT_EXIT = 2;
 
-// ===================== GLOBAL GAME DATA =====================
+const int OPT_NEW = 0, OPT_CONTINUE = 1, OPT_EXIT = 2;
 int  gameState = MENU;
-int  pressedKey = KEY_NONE;     // set in handleInput, used in updateGame
+bool wideActive = false;
+int wideFrameLeft = 0;
+
+int  pressedKey = KEY_NONE;     
 int  menuChoice = OPT_NEW;
-bool exitGame = false;          // main() closes the window when this is true
-bool noSavedGame = false;       // show "No saved game" on the menu
-bool playerWon = false; // true = YOU WIN, false = GAME OVER
+bool exitGame = false;          
+bool noSavedGame = false;       
+bool playerWon = false; 
 bool levelError = false;
 
 int  bricks[ROWS][COLS];
@@ -41,10 +38,11 @@ int  paddleX = 250, paddleWidth = PADDLE_W_NORMAL;
 int  ballX = 0, ballY = 0, dx = 0, dy = 0;
 bool ballLaunched = false;
 int  score = 0, lives = START_LIVES;
+bool powerUpActive = false;
+int powerUpType = 0;
+float powerUpX = 0, powerUpY = 0;
+const float POWERUP_SIZE = 20.f;
 
-// ===================== YOUR LOGIC: function shells =====================
-
-// Reads level.txt into bricks[][]. Return false if the file is missing.
 bool loadLevel()
 {
     ifstream fin("level.txt");
@@ -62,8 +60,6 @@ bool loadLevel()
     return true;
 }
 
-// Puts the ball on the middle of the paddle, waiting for Space.
-// Puts the ball on the middle of the paddle, waiting for Space.
 void resetBall()
 {
     ballX = paddleX + 44;
@@ -73,7 +69,6 @@ void resetBall()
 
 }
 
-// New Game: score 0, 3 lives, reload bricks, paddle in the middle, ball on paddle.
 void startNewGame()
 {
     levelError = false;
@@ -118,9 +113,6 @@ void launchBall()
     }
     ballLaunched = true;
 }
-
-// Bricks the ball touches (use the 4 corners). Returns true if it touched a brick.
-// Hint: this helper is called after the x step and after the y step.
 bool hitBricks()
 {
     bool hit=false ;
@@ -153,7 +145,6 @@ bool hitBricks()
     return hit;
 }
 
-// Ball moving down and touching the paddle: put it on top, dy = -5, dx by the part hit.
 void bounceOnPaddle()
 {
     if (dy < 0)
@@ -193,7 +184,6 @@ void bounceOnPaddle()
     }
 }
 
-// Moves the ball in two steps (x then y), walls, bricks, paddle, lost ball.
 int countBricks()
 {
     int counts = 0;
@@ -263,7 +253,6 @@ void saveGame()
     fout.close();
 }
 
-// Returns false if there is no saved game.
 bool loadGame()
 {
     ifstream fin("savegame.txt");
@@ -292,7 +281,7 @@ void clearSave()
     fout.close();
 }
 
-// ===================== UPDATE PER STATE =====================
+
 void updateMenu()
 {
     if (pressedKey == KEY_ENTER && menuChoice == OPT_NEW)
@@ -347,6 +336,8 @@ void updatePlaying()
     {
         moveBall();
     }
+    checkpowerupCollision();
+    UpdateWidthPaddle();
 
     if (pressedKey == KEY_ESC)
     {
@@ -368,7 +359,7 @@ void updateEndScreen()
 
 }
 
-// ===================== DRAWING HELPERS (SFML only) =====================
+
 void drawText(sf::RenderWindow& window, const sf::Font& font, const string& str,
     float x, float y, unsigned int size, sf::Color color = sf::Color::White)
 {
@@ -402,7 +393,6 @@ void drawHUD(sf::RenderWindow& window, const sf::Font& font)
     drawText(window, font, "LIVES " + to_string(lives), 460.f, 10.f, 24);
 }
 
-// draws the bricks which are alive.
 void drawBricks(sf::RenderWindow& window)
 {
     const float BRICK_W = 60.f, BRICK_H = 25.f;
@@ -449,10 +439,10 @@ void drawEndScreen(sf::RenderWindow& window, const sf::Font& font)
     drawText(window, font, "Press Enter", 220.f, 420.f, 24);
 }
 
-// ===================== INPUT, UPDATE, DRAW =====================
+
 void handleInput(sf::RenderWindow& window)
 {
-    pressedKey = KEY_NONE;   // forget last frame's key
+    pressedKey = KEY_NONE;   
     while (const optional event = window.pollEvent())
     {
         if (event->is<sf::Event::Closed>())
@@ -498,6 +488,47 @@ void drawGame(sf::RenderWindow& window, const sf::Font& font)
     }
     window.display();
 }
+ void checkpowerupCollision()
+{
+     if (!powerUpActive)
+         return;
+     bool horizontalCollision = powerUpX + POWERUP_SIZE >= paddleX && powerUpX <= paddleWidth + paddleX;
+     bool verticalCollision = powerUpY + POWERUP_SIZE >= PADDLE_Y && powerUpY <= PADDLE_Y + PADDLE_H;
+     if (horizontalCollision && verticalCollision)
+     {
+         if (powerUpType == 1)
+         {
+             wideActive = true;
+             paddleWidth = 150;
+             wideFrameLeft = 600;
+             if (paddleX + paddleWidth > WIN_W)
+             {
+                 paddleX = WIN_W - paddleWidth;
+             }
+         }
+         else if (powerUpType == 2)
+         {
+             lives++;
+         }
+         powerUpActive = false;
+     }
+}
+ void UpdateWidthPaddle()
+ {
+     if (!wideActive)
+     {
+         return;
+     }
+     wideFrameLeft--;
+     if (wideFrameLeft <= 0)
+     {
+         wideActive = false;
+         paddleWidth = PADDLE_W_NORMAL;
+
+         if (paddleX + paddleWidth > WIN_W)
+             paddleX = WIN_W - paddleWidth;
+     }
+ }
 
 int main()
 {
