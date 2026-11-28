@@ -46,7 +46,7 @@ bool powerUpActive = false;
 int powerUpType = 0;
 float powerUpX = 0, powerUpY = 0;
 const float POWERUP_SIZE = 20.f;
-void clearsave();
+void clearSave();
 bool loadLevel()
 {
     ifstream fin("level.txt");
