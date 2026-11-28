@@ -1,5 +1,4 @@
-// Block Buster - starter skeleton (SFML 3)
-// SFML scaffolding is provided. Every TODO is YOUR game logic.
+
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <cstdlib>
@@ -16,6 +15,11 @@ const int   PADDLE_W_NORMAL = 100, PADDLE_SPEED = 8;
 const float BALL_SIZE = 12.f;
 const int   START_LIVES = 3, POINTS_HIT = 10, POINTS_BREAK = 50;
 
+const int POWER_SPEED = 3, POWER_CHANCE = 5;
+const int POWER_W = 30, POWER_H = 16;
+const int PT_WIDE = 0, PT_LIFE = 1;
+
+// game states
 const int MENU = 0, PLAYING = 1, GAME_OVER = 2;
 const int KEY_NONE = 0, KEY_UP = 1, KEY_DOWN = 2, KEY_ENTER = 3,
 KEY_SPACE = 4, KEY_ESC = 5;
@@ -42,7 +46,7 @@ bool powerUpActive = false;
 int powerUpType = 0;
 float powerUpX = 0, powerUpY = 0;
 const float POWERUP_SIZE = 20.f;
-
+void clearsave();
 bool loadLevel()
 {
     ifstream fin("level.txt");
@@ -115,6 +119,7 @@ void startNewGame()
 {
     levelError = false;
     score = 0, lives = START_LIVES;
+    powerUpActive = false;
     paddleWidth = PADDLE_W_NORMAL;
     paddleX = (WIN_W - paddleWidth) / 2;
     if (!loadLevel())
@@ -158,7 +163,7 @@ void launchBall()
 bool hitBricks()
 {
     bool hit=false ;
-    int hitRow = -1, hitCol = -1;
+    int hitRows[4], hitCols[4], hitCount = 0;
     int s = (int )BALL_SIZE-1;
     int cx[4] = { ballX, ballX + s, ballX,     ballX + s };
     int cy[4] = { ballY, ballY,     ballY + s, ballY + s };
@@ -168,15 +173,29 @@ bool hitBricks()
         {
             int row = (cy[i]-100)/25;
             int col = cx[i] / 60;
-            if (bricks[row][col] > 0 && !(row == hitRow && col == hitCol))
+            bool already = false;
+            for (int k = 0; k < hitCount; k++)
+                if (hitRows[k] == row && hitCols[k] == col)
+                    already = true;
+            if (bricks[row][col] > 0 && !(already))
             {
                 bricks[row][col]--;
-                hitRow = row;
-                hitCol = col;
+                hitRows[hitCount] = row;
+                hitCols[hitCount] = col;
+                hitCount++;
                 hit = true;
 
                 if (bricks[row][col] == 0)
+                {
                     score += POINTS_BREAK;
+                    if (!powerUpActive && rand() % POWER_CHANCE == 0)
+                    {
+                        powerUpActive = true;
+                        powerUpX = col * 60 + 30 - POWER_W / 2;
+                        powerUpY = 100 + row * 25;
+                        powerUpType = rand() % 2;
+                    }
+                }
                 else
                     score += POINTS_HIT;
             }
@@ -226,6 +245,7 @@ void bounceOnPaddle()
     }
 }
 
+
 int countBricks()
 {
     int counts = 0;
@@ -242,16 +262,17 @@ int countBricks()
 
     return counts;
 }
+
 void moveBall()
 {
     ballX = ballX + dx;
-    if (ballX<0 || ballX + BALL_SIZE>WIN_W)
+    if (ballX < 0 || ballX + BALL_SIZE > WIN_W || hitBricks())
     {
         ballX = ballX - dx;
         dx = -dx;
     }
     ballY = ballY + dy;
-    if (ballX < 0 || ballX + BALL_SIZE > WIN_W || hitBricks())
+    if (ballY < HUD_H || hitBricks())
     {
         ballY = ballY - dy;
         dy = -dy;
@@ -263,6 +284,7 @@ void moveBall()
         if (lives <= 0)
         {
             playerWon = false;
+            clearSave();
             gameState = GAME_OVER;
         }
         else
@@ -271,6 +293,7 @@ void moveBall()
     if (countBricks() == 0)
     {
         playerWon = true;
+        clearSave();
         gameState = GAME_OVER;
     }
 
@@ -311,9 +334,10 @@ bool loadGame()
 
     }
     fin.close();
-    paddleX = 250;
-    ballX = paddleX + 44, ballY = 638;
-    ballLaunched = false;
+    powerUpActive = false;
+    paddleWidth = PADDLE_W_NORMAL;
+    paddleX = (WIN_W - paddleWidth) / 2;
+    resetBall();
     return true;
 }
 
@@ -344,6 +368,8 @@ void updateMenu()
     if (pressedKey == KEY_DOWN)
     {
         menuChoice += 1;
+        noSavedGame = false;
+        levelError = false;
     }
     if (menuChoice > OPT_EXIT)
     {
@@ -352,6 +378,8 @@ void updateMenu()
     if (pressedKey == KEY_UP)
     {
         menuChoice -= 1;
+        noSavedGame = false;
+        levelError = false;
     }
     if (menuChoice < OPT_NEW)
     {
@@ -363,9 +391,29 @@ void updateMenu()
     }
 }
 
+void movePowerUp()
+{
+    if (!powerUpActive)
+    {
+        return;
+    }
+    powerUpY += POWER_SPEED;
+    if (powerUpY > WIN_H)
+    {
+        powerUpActive = false;
+    }
+   }
+
+
 void updatePlaying()
 {
-    movePaddle();
+    if (pressedKey == KEY_ESC)
+    {
+        saveGame();
+        gameState = MENU;
+        return;
+    }
+      movePaddle();
     if (!ballLaunched)
     {
         ballX = paddleX + 44;
@@ -378,14 +426,10 @@ void updatePlaying()
     {
         moveBall();
     }
+    movePowerUp();
     checkpowerupCollision();
     UpdateWidthPaddle();
 
-    if (pressedKey == KEY_ESC)
-    {
-        saveGame();
-        gameState = MENU;
-    }
 }
 
 void updateEndScreen()
@@ -424,6 +468,27 @@ void drawBall(sf::RenderWindow& window)
     sf::CircleShape ball(BALL_SIZE / 2);
     ball.setPosition({ (float)ballX, (float)ballY });
     window.draw(ball);
+}
+
+void drawPowerUp(sf::RenderWindow& window, const sf::Font& font)
+{
+    if (!powerUpActive)
+        return;
+    sf::RectangleShape box({ (float)POWER_W, (float)POWER_H });
+    box.setPosition({ (float)powerUpX, (float)powerUpY });
+    string letter;
+    if (powerUpType == PT_WIDE)
+    {
+        box.setFillColor(sf::Color::Cyan);
+        letter = "W";
+    }
+    else
+    {
+        box.setFillColor(sf::Color::Green);
+        letter = "+";
+    }
+    window.draw(box);
+    drawText(window, font, letter, (float)powerUpX + 9.f, (float)powerUpY - 3.f, 16, sf::Color::Black);
 }
 
 void drawHUD(sf::RenderWindow& window, const sf::Font& font)
@@ -523,6 +588,7 @@ void drawGame(sf::RenderWindow& window, const sf::Font& font)
         drawBricks(window);
         drawPaddle(window);
         drawBall(window);
+        drawPowerUp(window, font);
         break;
     case GAME_OVER:
         drawEndScreen(window, font);
