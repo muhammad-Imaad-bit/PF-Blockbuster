@@ -68,6 +68,48 @@ void resetBall()
     ballLaunched = false;
 
 }
+void checkpowerupCollision()
+{
+    if (!powerUpActive)
+        return;
+    bool horizontalCollision = powerUpX + POWERUP_SIZE >= paddleX && powerUpX <= paddleWidth + paddleX;
+    bool verticalCollision = powerUpY + POWERUP_SIZE >= PADDLE_Y && powerUpY <= PADDLE_Y + PADDLE_H;
+    if (horizontalCollision && verticalCollision)
+    {
+        if (powerUpType == 1)
+        {
+            wideActive = true;
+            paddleWidth = 150;
+            wideFrameLeft = 600;
+            if (paddleX + paddleWidth > WIN_W)
+            {
+                paddleX = WIN_W - paddleWidth;
+            }
+        }
+        else if (powerUpType == 2)
+        {
+            lives++;
+        }
+        powerUpActive = false;
+    }
+}
+void UpdateWidthPaddle()
+{
+    if (!wideActive)
+    {
+        return;
+    }
+    wideFrameLeft--;
+    if (wideFrameLeft <= 0)
+    {
+        wideActive = false;
+        paddleWidth = PADDLE_W_NORMAL;
+
+        if (paddleX + paddleWidth > WIN_W)
+            paddleX = WIN_W - paddleWidth;
+    }
+}
+
 
 void startNewGame()
 {
@@ -488,47 +530,6 @@ void drawGame(sf::RenderWindow& window, const sf::Font& font)
     }
     window.display();
 }
- void checkpowerupCollision()
-{
-     if (!powerUpActive)
-         return;
-     bool horizontalCollision = powerUpX + POWERUP_SIZE >= paddleX && powerUpX <= paddleWidth + paddleX;
-     bool verticalCollision = powerUpY + POWERUP_SIZE >= PADDLE_Y && powerUpY <= PADDLE_Y + PADDLE_H;
-     if (horizontalCollision && verticalCollision)
-     {
-         if (powerUpType == 1)
-         {
-             wideActive = true;
-             paddleWidth = 150;
-             wideFrameLeft = 600;
-             if (paddleX + paddleWidth > WIN_W)
-             {
-                 paddleX = WIN_W - paddleWidth;
-             }
-         }
-         else if (powerUpType == 2)
-         {
-             lives++;
-         }
-         powerUpActive = false;
-     }
-}
- void UpdateWidthPaddle()
- {
-     if (!wideActive)
-     {
-         return;
-     }
-     wideFrameLeft--;
-     if (wideFrameLeft <= 0)
-     {
-         wideActive = false;
-         paddleWidth = PADDLE_W_NORMAL;
-
-         if (paddleX + paddleWidth > WIN_W)
-             paddleX = WIN_W - paddleWidth;
-     }
- }
 
 int main()
 {
